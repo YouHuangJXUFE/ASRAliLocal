@@ -147,4 +147,30 @@ public class FileTransRESTfulDemo {
 
         return result;
     }
+
+    public static void main(String[] args) {
+        if (args.length < 1) {
+            System.err.println("FileTransRESTfulDemo need params: <gateway所在IP>");
+            System.exit(-1);
+        }
+
+        String ip = args[0];
+        String appkey = "default";
+        String token = "default";
+        String port = "8101";
+
+        String url = "http://" + ip + ":" + port + "/stream/v1/filetrans";
+        String fileLink = "https://aliyun-nls.oss-cn-hangzhou.aliyuncs.com/asr/fileASR/examples/nls-sample-16k.wav";
+
+        FileTransRESTfulDemo demo = new FileTransRESTfulDemo(appkey, token);
+
+        // 第一步：提交录音文件识别请求，获取任务ID用于后续的识别结果轮询
+        String taskId = demo.submitFileTransRequest(url, fileLink);
+        if (taskId != null) {
+            System.out.println("录音文件识别请求成功，task_id:" + taskId);
+        }
+        else {
+            System.out.println("录音文件识别请求失败！");
+        }
+    }
 }
