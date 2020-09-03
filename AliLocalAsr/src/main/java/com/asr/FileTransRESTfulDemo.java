@@ -7,6 +7,12 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.*;
 
 /**
  * oyh
@@ -31,6 +37,7 @@ public class FileTransRESTfulDemo {
 
     private String appkey;
     private String token;
+    private static final Integer NUM=10;
 
     /**
      * 带参数的构造函数
@@ -91,6 +98,9 @@ public class FileTransRESTfulDemo {
         return taskId;
     }
 
+   public static ExecutorService executor = new ThreadPoolExecutor(NUM, 1000,
+           0L, TimeUnit.MILLISECONDS,
+           new LinkedBlockingQueue<Runnable>());
     public String getFileTransResult(String url, String taskId) {
         /**
          * 设置HTTP GET请求
@@ -149,28 +159,57 @@ public class FileTransRESTfulDemo {
     }
 
     public static void main(String[] args) {
-        if (args.length < 1) {
-            System.err.println("FileTransRESTfulDemo need params: <gateway所在IP>");
-            System.exit(-1);
-        }
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss.S");
+        int i = 0;
+        while (true) {
+            List<String> vo = new ArrayList<>();
+            vo.add("192.168.150.39");
 
-        String ip = args[0];
-        String appkey = "default";
-        String token = "default";
-        String port = "8101";
+            if (vo.size() < 1) {
+                System.err.println("FileTransRESTfulDemo need params: <gateway所在IP>");
+                System.exit(-1);
+            }
 
-        String url = "http://" + ip + ":" + port + "/stream/v1/filetrans";
-        String fileLink = "https://aliyun-nls.oss-cn-hangzhou.aliyuncs.com/asr/fileASR/examples/nls-sample-16k.wav";
+            String ip = vo.get(0);
+            String appkey = "default";
+            String token = "default";
+            String port = "8101";
 
-        FileTransRESTfulDemo demo = new FileTransRESTfulDemo(appkey, token);
+            String url = "http://" + ip + ":" + port + "/stream/v1/filetrans";
+            // String fileLink = "https://aliyun-nls.oss-cn-hangzhou.aliyuncs.com/asr/fileASR/examples/nls-sample-16k.wav";
+            String fileLink = "http://192.168.150.186:9939/ZHXS.mp3";
 
-        // 第一步：提交录音文件识别请求，获取任务ID用于后续的识别结果轮询
-        String taskId = demo.submitFileTransRequest(url, fileLink);
-        if (taskId != null) {
-            System.out.println("录音文件识别请求成功，task_id:" + taskId);
-        }
-        else {
-            System.out.println("录音文件识别请求失败！");
+            FileTransRESTfulDemo demo = new FileTransRESTfulDemo(appkey, token);
+
+            System.out.println("开始时间："+simpleDateFormat.format(new Date()));
+
+            // 第一步：提交录音文件识别请求，获取任务ID用于后续的识别结果轮询
+            String taskId = demo.submitFileTransRequest(url, fileLink);
+            if (taskId != null) {
+                System.out.println("录音文件识别请求成功，task_id:" + taskId);
+
+            } else {
+                System.out.println("录音文件识别请求失败！");
+            }
+
+            executor.submit(()->{
+                // 第二步：更具任务ID轮询识别结果
+                String result = demo.getFileTransResult(url, taskId);
+            if (result != null) {
+                System.out.println("录音文件识别结果查询成功：" + result);
+                System.out.println(simpleDateFormat.format(new Date()));
+            } else {
+                System.out.println("录音文件识别结果查询失败！");
+            }
+
+            });
+            i=(i+1)%NUM;
+            if (i == 0) {
+                try {
+                    Thread.sleep(10000000);
+                } catch (InterruptedException e) {
+                }
+            }
         }
     }
 }
