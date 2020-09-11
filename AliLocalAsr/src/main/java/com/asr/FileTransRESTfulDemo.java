@@ -177,7 +177,7 @@ public class FileTransRESTfulDemo {
 
             String url = "http://" + ip + ":" + port + "/stream/v1/filetrans";
             // String fileLink = "https://aliyun-nls.oss-cn-hangzhou.aliyuncs.com/asr/fileASR/examples/nls-sample-16k.wav";
-            String fileLink = "http://192.168.150.186:9939/ZHXS.mp3";
+            String fileLink = "http://192.168.150.186:9939/byf2.mp3";
 
             FileTransRESTfulDemo demo = new FileTransRESTfulDemo(appkey, token);
 
